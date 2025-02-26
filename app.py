@@ -6,6 +6,8 @@ import base64
 from PIL import Image
 import pdf2image
 import google.generativeai as genai
+from fpdf import FPDF
+import requests  # Needed for downloading the font file
 
 # Load environment variables
 load_dotenv()
@@ -18,6 +20,19 @@ if not API_KEY:
 
 genai.configure(api_key=API_KEY)
 
+def ensure_font_exists(font_path):
+    """Check if the font file exists; if not, download it."""
+    if not os.path.exists(font_path):
+        url = "https://github.com/dejavu-fonts/dejavu-fonts/raw/master/ttf/DejaVuSans.ttf"
+        st.info(f"Downloading DejaVuSans.ttf from {url} ...")
+        response = requests.get(url)
+        if response.status_code == 200:
+            with open(font_path, "wb") as f:
+                f.write(response.content)
+            st.success(f"Downloaded DejaVuSans.ttf to {font_path}")
+        else:
+            raise FileNotFoundError(f"Font file not found at {font_path} and download failed with status code {response.status_code}.")
+
 def get_gemini_response(input_text, pdf_content, prompt):
     """Generate a response using Google Gemini API."""
     model = genai.GenerativeModel('gemini-1.5-flash')
@@ -28,7 +43,7 @@ def input_pdf_setup(uploaded_file):
     """Convert first page of uploaded PDF to an image and encode as base64."""
     if uploaded_file is not None:
         uploaded_file.seek(0)  # Reset file pointer
-        images = pdf2image.convert_from_bytes(uploaded_file.read())  # Removed poppler_path
+        images = pdf2image.convert_from_bytes(uploaded_file.read())
         first_page = images[0]
 
         # Convert image to bytes
@@ -44,6 +59,25 @@ def input_pdf_setup(uploaded_file):
     else:
         raise FileNotFoundError("No File Uploaded")
 
+def generate_pdf(updated_resume_text):
+    """Generate a downloadable PDF file with Unicode support."""
+    pdf = FPDF()
+    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.add_page()
+
+    # Define correct font path and ensure it exists
+    font_path = os.path.join("/Users/gauravjangid/Work/Ai and Automation/chatbot/dejavu-fonts-ttf-2.37/ttf", "DejaVuSans.ttf")
+    
+    pdf.add_font("DejaVu", "", font_path, uni=True)
+    pdf.set_font("DejaVu", size=12)
+
+    # Wrap long text in a multi-cell that fits A4 width
+    pdf.multi_cell(190, 10, updated_resume_text, align="L")
+
+    pdf_output_path = "updated_resume.pdf"
+    pdf.output(pdf_output_path, "F")
+    return pdf_output_path
+
 # Streamlit App
 st.set_page_config(page_title="A5 ATS Resume Expert")
 st.header("MY A5 PERSONAL ATS")
@@ -57,6 +91,8 @@ if uploaded_file:
 submit1 = st.button("Tell Me About the Resume")
 submit3 = st.button("Percentage Match")
 submit4 = st.button("Personalized Learning Path")
+update_prompt = st.text_area("Describe how you want your resume updated:", key="update_prompt")
+submit5 = st.button("Update Resume & Download")
 
 input_prompt1 = """
 You are an experienced HR with tech expertise in Data Science, Full Stack, Web Development, Big Data Engineering, DevOps, or Data Analysis.
@@ -80,6 +116,16 @@ focusing on the skills, topics, and tools specified in the provided job descript
 - Recommended practical exercises or projects.
 - Periodic assessments or milestones.
 - Tips for real-world applications.
+"""
+
+input_prompt5 = """
+You are an expert resume writer with deep knowledge of Data Science, Full Stack, Web Development, Big Data Engineering, DevOps, and Data Analysis.
+Your task is to refine and optimize the provided resume according to the job description.
+Ensure the new resume:
+- Highlights relevant experience and skills.
+- Optimizes for ATS (Applicant Tracking Systems).
+- Uses strong action words and quantifiable achievements.
+- Incorporates key industry keywords.
 """
 
 if submit1:
@@ -106,5 +152,32 @@ elif submit4:
         response = get_gemini_response(input_prompt4, pdf_content, input_text)
         st.subheader("The Response is:")
         st.write(response)
+    else:
+        st.warning("Please upload a resume.")
+
+elif submit5:
+    if uploaded_file:
+        if input_text.strip():
+            pdf_content = input_pdf_setup(uploaded_file)
+            final_prompt = input_prompt5 + "\nJob Description: " + input_text
+            response = get_gemini_response(final_prompt, pdf_content, input_text)
+            
+            # Generate updated resume PDF
+            updated_resume_path = generate_pdf(response)
+            
+            if updated_resume_path:
+                st.subheader("Updated Resume Suggestion:")
+                st.write(response)
+
+                # Provide download link
+                with open(updated_resume_path, "rb") as file:
+                    st.download_button(
+                        label="Download Updated Resume",
+                        data=file,
+                        file_name="Updated_Resume.pdf",
+                        mime="application/pdf"
+                    )
+        else:
+            st.warning("Please provide a job description to update the resume.")
     else:
         st.warning("Please upload a resume.")
