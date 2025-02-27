@@ -66,7 +66,7 @@ def generate_pdf(updated_resume_text):
     pdf.add_page()
 
     # Define correct font path and ensure it exists
-    font_path = os.path.join(os.getcwd(), "DejaVuSans.ttf")
+    font_path = os.path.join("/Users/gauravjangid/Work/Ai and Automation/chatbot/dejavu-fonts-ttf-2.37/ttf", "DejaVuSans.ttf")
     
     pdf.add_font("DejaVu", "", font_path, uni=True)
     pdf.set_font("DejaVu", size=12)
@@ -91,9 +91,11 @@ if uploaded_file:
 submit1 = st.button("Tell Me About the Resume")
 submit3 = st.button("Percentage Match")
 submit4 = st.button("Personalized Learning Path")
-update_prompt = st.text_area("Describe how you want your resume updated:", key="update_prompt")
+#update_prompt = st.text_area("Describe how you want your resume updated:", key="update_prompt")
 submit5 = st.button("Update Resume & Download")
 submit6 = st.button("Generate Interview Questions")
+
+
 
 input_prompt1 = """
 You are an experienced HR with tech expertise in Data Science, Full Stack, Web Development, Big Data Engineering, DevOps, or Data Analysis.
@@ -134,12 +136,60 @@ You are an AI-powered interview coach.
 Generate {num_questions} interview questions based on the given job description,
 focusing on the required skills and expertise.
 """
+if submit1:
+    if uploaded_file:
+        pdf_content = input_pdf_setup(uploaded_file)
+        response = get_gemini_response(input_prompt1, pdf_content, input_text)
+        st.subheader("The Response is:")
+        st.write(response)
+    else:
+        st.warning("Please upload a resume.")
+
+elif submit3:
+    if uploaded_file:
+        pdf_content = input_pdf_setup(uploaded_file)
+        response = get_gemini_response(input_prompt3, pdf_content, input_text)
+        st.subheader("The Response is:")
+        st.write(response)
+    else:
+        st.warning("Please upload a resume.")
+
+elif submit4:
+    if uploaded_file:
+        pdf_content = input_pdf_setup(uploaded_file)
+        response = get_gemini_response(input_prompt4, pdf_content, input_text)
+        st.subheader("The Response is:")
+        st.write(response)
+    else:
+        st.warning("Please upload a resume.")
+        
+elif submit5:
+    if uploaded_file:
+        if input_text.strip():  # Ensure update prompt is not empty
+            pdf_content = input_pdf_setup(uploaded_file)
+            response = get_gemini_response(input_prompt5, pdf_content, input_text)
+
+            if response:
+                pdf_path = generate_pdf(response)
+
+                with open(pdf_path, "rb") as pdf_file:
+                    pdf_bytes = pdf_file.read()
+                    b64_pdf = base64.b64encode(pdf_bytes).decode()
+                    href = f'<a href="data:application/pdf;base64,{b64_pdf}" download="Updated_Resume.pdf">Click here to download your updated resume</a>'
+                    st.markdown(href, unsafe_allow_html=True)
+            else:
+                st.error("Error: No response received from Gemini API.")
+        else:
+            st.warning("Please provide instructions on how you want your resume updated.")
+    else:
+        st.warning("Please upload a resume before updating.")
+
 
 # Slider to choose the number of interview questions
 num_questions = st.slider("Select number of interview questions:", min_value=1, max_value=30, value=5)
 if submit6:
     if input_text.strip():
-        response = get_gemini_response(input_text, [""], input_prompt6.format(num_questions=num_questions))
+        response = get_gemini_response(input_text,input_prompt1, input_prompt6.format(num_questions=num_questions))
         st.subheader("Generated Interview Questions:")
         st.write(response)
     else:
