@@ -1,0 +1,71 @@
+## 10 Easy Core Python Interview Questions for Data Science (with Answers)
+
+These questions focus on fundamental Python concepts relevant to data science, suitable for entry-level or junior roles.
+
+**1. Question:** What is the difference between a list and a tuple in Python?
+
+**Answer:**  Both lists and tuples are used to store sequences of items.  However, lists are mutable (their elements can be changed after creation), while tuples are immutable (their elements cannot be changed once created).  Lists are defined using square brackets `[]`, while tuples use parentheses `()`.  Tuples are generally faster and more memory-efficient than lists, particularly for large sequences that don't need modification.
+
+
+**2. Question:** Explain the concept of list comprehension in Python and provide an example.
+
+**Answer:** List comprehension provides a concise way to create lists. It involves an expression followed by a `for` clause, and optionally `if` clauses, all enclosed in square brackets.  It allows you to generate a new list based on an existing iterable.
+
+Example:  `squares = [x**2 for x in range(10)]`  This creates a list of squares of numbers from 0 to 9.
+
+
+**3. Question:** What are dictionaries in Python, and how do you access their elements?
+
+**Answer:** Dictionaries are unordered collections of key-value pairs.  Keys must be immutable (e.g., strings, numbers, tuples), and values can be of any data type.  You access elements using their keys within square brackets `[]`.
+
+Example: `my_dict = {"name": "Alice", "age": 30}`.  Accessing the age: `my_dict["age"]`  (returns 30)
+
+
+**4. Question:** How do you handle exceptions in Python?  Give an example using `try`, `except`, and `finally` blocks.
+
+**Answer:**  The `try...except` block handles potential errors during code execution. The `try` block contains the code that might raise an exception. If an exception occurs, the corresponding `except` block is executed. The `finally` block (optional) contains code that always executes, regardless of whether an exception occurred.
+
+Example:
+
+```python
+try:
+    result = 10 / 0
+except ZeroDivisionError:
+    print("Cannot divide by zero!")
+finally:
+    print("This always executes.")
+```
+
+
+**5. Question:** What is the purpose of the `numpy` library in Python?
+
+**Answer:** NumPy (Numerical Python) is a fundamental library for numerical computation in Python. It provides efficient N-dimensional array objects (ndarrays), along with tools for working with these arrays (mathematical functions, linear algebra, random number generation, etc.).  It's crucial for data science because it forms the basis for many other data science libraries like Pandas and Scikit-learn.
+
+
+**6. Question:**  What is a Pandas DataFrame?
+
+**Answer:** A Pandas DataFrame is a two-dimensional labeled data structure with columns of potentially different types. It's like a spreadsheet or SQL table, and is extremely useful for data manipulation and analysis.  It provides efficient methods for data cleaning, transformation, and analysis.
+
+
+**7. Question:** Explain the concept of slicing in Python lists.
+
+**Answer:** Slicing is a way to extract a portion of a list (or other sequence) using the syntax `[start:stop:step]`.  `start` is the index of the first element to include (inclusive), `stop` is the index of the element to stop before (exclusive), and `step` is the increment between elements.  If omitted, `start` defaults to 0, `stop` to the end of the list, and `step` to 1.
+
+
+**8. Question:** What is a function in Python, and why are they useful?
+
+**Answer:** A function is a block of reusable code that performs a specific task.  Functions improve code organization, readability, and reusability. They take input arguments (optional) and can return a value (optional).
+
+
+**9. Question:** What is the difference between `append()` and `extend()` methods for lists?
+
+**Answer:** Both add elements to a list, but `append()` adds a single element as a new item at the end, while `extend()` adds elements from an iterable (like another list) to the end of the list.
+
+
+**10. Question:** How do you import a module in Python? Give an example.
+
+**Answer:** You import modules using the `import` keyword followed by the module name.  For example: `import numpy` or `import pandas as pd` (the `as pd` part assigns an alias to the module for shorter usage).
+
+
+
+These questions and answers should provide a good starting point for an interview focusing on core Python for data science roles. Remember to adjust the difficulty based on the seniority of the candidate.

@@ -66,7 +66,8 @@ def generate_pdf(updated_resume_text):
     pdf.add_page()
 
     # Define correct font path and ensure it exists
-    font_path = os.path.join("/Users/gauravjangid/Work/Ai and Automation/chatbot/dejavu-fonts-ttf-2.37/ttf", "DejaVuSans.ttf")
+    import os
+    font_path = os.path.join(os.getcwd(), "fonts/DejaVuSans.ttf")
     
     pdf.add_font("DejaVu", "", font_path, uni=True)
     pdf.set_font("DejaVu", size=12)
@@ -94,6 +95,7 @@ submit4 = st.button("Personalized Learning Path")
 #update_prompt = st.text_area("Describe how you want your resume updated:", key="update_prompt")
 submit5 = st.button("Update Resume & Download")
 submit6 = st.button("Generate Interview Questions")
+
 
 
 
@@ -184,7 +186,7 @@ elif submit5:
     else:
         st.warning("Please upload a resume before updating.")
 
-
+#RELATED QUESTION
 # Slider to choose the number of interview questions
 num_questions = st.slider("Select number of interview questions:", min_value=1, max_value=30, value=5)
 if submit6:
@@ -194,3 +196,78 @@ if submit6:
         st.write(response)
     else:
         st.warning("Please provide a job description to generate questions.")
+        
+
+#DATA SCIENCE QUESTION BANK
+#function for independently generate output
+def get_gemini_response_question(prompt):
+    """Generate a response using Google Gemini API."""
+    model = genai.GenerativeModel('gemini-1.5-flash')
+    response = model.generate_content([prompt])
+    return response.text
+
+# Streamlit App - Data Science Question Bank with Select Box
+st.subheader("Data Science Question Bank")
+
+if "show_question_selection" not in st.session_state:
+    st.session_state.show_question_selection = False  # Initialize state
+
+if st.button("Data Science Question Bank"):
+    st.session_state.show_question_selection = True  # Set to True when clicked
+
+# Show dropdowns only if the button was clicked
+if st.session_state.show_question_selection:
+    # Dropdown for topic selection
+    question_topic = st.selectbox(
+        "Select a topic:",
+        ["Core Python", "Machine Learning (NumPy, Pandas)", "Deep Learning", "Generative AI"]
+    )
+
+    Level = st.selectbox(
+        "Select Level of question:",
+        ["Easy", "Intermediate", "Difficult"]
+    )
+
+    # Define prompts for each topic
+    question_prompts = {
+        "Core Python": f"Generate 10 interview questions on Core Python of {Level} for Data Science with answers",
+        "Machine Learning (NumPy, Pandas)": f"Generate 10 interview questions covering Machine Learning of {Level} including NumPy and Pandas with answers",
+        "Deep Learning": f"Generate 10 interview questions on Deep Learning of {Level}, covering topics such as Neural Networks and CNNs with answers",
+        "Generative AI": f"Generate 10 interview questions on Generative AI of {Level}, including models like GPT and Gemini with answers"
+    }
+
+    # Button to generate questions
+    if st.button("Generate Interview Question"):
+        if question_topic:
+            response = get_gemini_response_question(question_prompts[question_topic])
+            st.subheader(f"{question_topic} ({Level} Level) Questions:")
+            st.write(response)
+
+            # Convert response to a downloadable text file
+            text_filename = "interview_questions.txt"
+            with open(text_filename, "w", encoding="utf-8") as text_file:
+                text_file.write(response)
+
+            # Provide download link for the text file
+            with open(text_filename, "rb") as text_file:
+                b64_txt = base64.b64encode(text_file.read()).decode()
+                href_txt = f'<a href="data:text/plain;base64,{b64_txt}" download="Interview_Questions.txt">Click here to download as Text</a>'
+                st.markdown(href_txt, unsafe_allow_html=True)
+
+            # Convert response to a PDF
+            pdf = FPDF()
+            pdf.set_auto_page_break(auto=True, margin=15)
+            pdf.add_page()
+            pdf.set_font("Arial", size=12)
+
+            for line in response.split("\n"):
+                pdf.multi_cell(190, 10, line, align="L")
+
+            pdf_output_path = "interview_questions.pdf"
+            pdf.output(pdf_output_path)
+
+            # Provide download link for the PDF
+            with open(pdf_output_path, "rb") as pdf_file:
+                b64_pdf = base64.b64encode(pdf_file.read()).decode()
+                href_pdf = f'<a href="data:application/pdf;base64,{b64_pdf}" download="Interview_Questions.pdf">Click here to download as PDF</a>'
+                st.markdown(href_pdf, unsafe_allow_html=True)
