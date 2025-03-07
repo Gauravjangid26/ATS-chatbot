@@ -367,89 +367,89 @@ if st.button(f"Teach me  {dsa_topic} with case studies "):
     st.write(response)
 
 ##Speech analysis
-st.subheader("🎤 Pitch & Confidence Analyzer from Video")
+def extract_audio(video_path):
+    """Extracts audio from a video file and saves it as a WAV file."""
+    audio_path = video_path.replace(".mp4", ".wav")
+    try:
+        audio = AudioSegment.from_file(video_path)
+        audio.export(audio_path, format="wav")
+        return audio_path
+    except Exception as e:
+        st.error(f"❌ Error extracting audio: {e}")
+        return None
 
+def analyze_pitch(audio_path):
+    """Analyzes pitch and confidence from an audio file."""
+    try:
+        y, sr = librosa.load(audio_path, sr=None)
+        if len(y) == 0:
+            st.error("❌ No valid audio detected.")
+            return None, None, None
+
+        # Extract pitch using YIN
+        f0 = librosa.yin(y, fmin=75, fmax=300)
+        valid_f0 = f0[f0 > 0]
+
+        if len(valid_f0) == 0:
+            st.error("❌ No valid pitch detected.")
+            return None, None, None
+
+        avg_pitch = np.mean(valid_f0)
+        pitch_variability = np.std(valid_f0)
+        confidence_score = max(0, min(100, 100 - (pitch_variability * 1.2)))
+
+        return avg_pitch, pitch_variability, confidence_score
+    except Exception as e:
+        st.error(f"❌ Error in pitch analysis: {e}")
+        return None, None, None
+
+def get_confidence_label(confidence_score):
+    """Determines confidence label based on the confidence score."""
+    if confidence_score > 75:
+        return "High 🎯", "✅"
+    elif confidence_score > 50:
+        return "Moderate ⚠️", "🟡"
+    else:
+        return "Low ❌", "🔴"
+
+# 🎤 Streamlit UI  
+st.subheader("🎤 Pitch & Confidence Analyzer from Video")  
 uploaded_video = st.file_uploader("Upload your video (MP4, AVI, MOV)...", type=['mp4', 'avi', 'mov'])
 
 if uploaded_video:
     st.success("✅ Video Uploaded Successfully.")
+    
     if st.button("Submit"):
-        # Save uploaded video temporarily
+        # Save video temporarily
         temp_video = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
         temp_video.write(uploaded_video.read())
         temp_video_path = temp_video.name
 
-        # Extract audio from video using pydub
-        audio_path = temp_video_path.replace(".mp4", ".wav")
-
-        try:
-            audio = AudioSegment.from_file(temp_video_path, format="mp4")  
-            audio.export(audio_path, format="wav")
-        except Exception as e:
-            st.error(f"❌ Error extracting audio: {e}")
+        # Extract audio
+        audio_path = extract_audio(temp_video_path)
+        if not audio_path:
             st.stop()
 
-        # Load the extracted audio for analysis
-        try:
-            y, sr = librosa.load(audio_path, sr=None)
-        except Exception as e:
-            st.error(f"❌ Error loading audio: {e}")
+        # Analyze pitch & confidence
+        avg_pitch, pitch_variability, confidence_score = analyze_pitch(audio_path)
+        if avg_pitch is None:
             st.stop()
 
-        # 🔹 Debugging: Check if `y` has data
-        if len(y) == 0:
-            st.error("❌ No valid audio data found. Please upload a different video.")
-            st.stop()
+        # Determine confidence level
+        confidence_label, confidence_color = get_confidence_label(confidence_score)
 
-        # 🔹 Improved Pitch Extraction using YIN algorithm
-        try:
-            f0 = librosa.yin(y, fmin=50, fmax=400)  # Adjusted fmin & fmax to capture human voice
-            valid_f0 = f0[f0 > 0]  # Remove zero values
-        except Exception as e:
-            st.error(f"❌ Error in pitch tracking: {e}")
-            st.stop()
-
-        # 🔹 Debugging: Check extracted pitch values
-        st.write(f"**Debug: Extracted {len(valid_f0)} pitch values**")
-        if len(valid_f0) == 0:
-            st.error("❌ No valid pitch detected. Try another video with clearer speech.")
-            st.stop()
-
-        avg_pitch = np.mean(valid_f0) if len(valid_f0) > 0 else 0
-        pitch_variability = np.std(valid_f0) if len(valid_f0) > 0 else 0
-
-        # 🔹 Fix Confidence Score Calculation
-        confidence_score = max(0, min(100, 100 - (pitch_variability * 1.5)))  # Less strict variation penalty
-
-        # 🧐 Define confidence rating
-        if confidence_score > 75:
-            confidence_label = "High 🎯"
-            confidence_color = "✅"
-        elif confidence_score > 50:
-            confidence_label = "Moderate ⚠️"
-            confidence_color = "🟡"
-        else:
-            confidence_label = "Low ❌"
-            confidence_color = "🔴"
-
-        #  Display analysis results
+        # Display Results
         st.write("### 🎙️ Speech Analysis Results")
         st.write(f"**Average Pitch:** {avg_pitch:.2f} Hz")
         st.write(f"**Pitch Variability:** {pitch_variability:.2f}")
         st.write(f"**Confidence Score:** {confidence_score:.1f}/100 {confidence_color} ({confidence_label})")
 
-        #  Insights & Recommendations
+        # Insights & Recommendations
         st.subheader("📊 Insights & Recommendations")
         if confidence_score > 75:
-            st.success("✅ Your pitch and voice control indicate strong confidence! Keep up the good work.")
+            st.success("✅ Strong confidence! Keep up the good work.")
         elif confidence_score > 50:
-            st.warning("⚠️ Your confidence is moderate. Try maintaining a steady voice to improve clarity.")
+            st.warning("⚠️ Moderate confidence. Try maintaining a steady voice for better clarity.")
         else:
-            st.error("❌ Your speech shows low confidence. Practice speaking with a stable tone and controlled pitch.")
-
-        # Optional: Play extracted audio
-        # st.audio(audio_path, format="audio/wav")
-
-        # Cleanup: Remove temporary files
-        os.remove(temp_video_path)
-        os.remove(audio_path)
+            st.error("❌ Low confidence. Practice speaking with a stable tone and controlled pitch.")
+        
