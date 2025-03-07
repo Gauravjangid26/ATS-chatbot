@@ -432,13 +432,13 @@ if uploaded_video:
             confidence_label = "Low ❌"
             confidence_color = "🔴"
 
-        # 🎙️ Display analysis results
+        #  Display analysis results
         st.write("### 🎙️ Speech Analysis Results")
         st.write(f"**Average Pitch:** {avg_pitch:.2f} Hz")
         st.write(f"**Pitch Variability:** {pitch_variability:.2f}")
         st.write(f"**Confidence Score:** {confidence_score:.1f}/100 {confidence_color} ({confidence_label})")
 
-        # 🧐 Insights & Recommendations
+        #  Insights & Recommendations
         st.subheader("📊 Insights & Recommendations")
         if confidence_score > 75:
             st.success("✅ Your pitch and voice control indicate strong confidence! Keep up the good work.")
