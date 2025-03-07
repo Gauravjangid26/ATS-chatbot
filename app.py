@@ -322,7 +322,7 @@ else:
 
 
 ## DSA for Data science
-st.subheader("DSA For Data Science")
+st.title("DSA For Data Science")
 
 dsa_level=st.selectbox("Select Difficulty Level:",["Easy","Medium","Hard"])
 num_questions=10
@@ -412,8 +412,9 @@ def get_confidence_label(confidence_score):
     else:
         return "Low ❌", "🔴"
 
-# 🎤 Streamlit UI  
-st.subheader("🎤 Pitch & Confidence Analyzer from Video")  
+# Streamlit UI  audio analyzer
+
+st.header("Audio Aanalyzer")  
 uploaded_video = st.file_uploader("Upload your video (MP4, AVI, MOV)...", type=['mp4', 'avi', 'mov'])
 
 if uploaded_video:
@@ -453,3 +454,108 @@ if uploaded_video:
         else:
             st.error("❌ Low confidence. Practice speaking with a stable tone and controlled pitch.")
         
+import streamlit as st
+from pydub import AudioSegment
+import tempfile
+import os
+import google.generativeai as genai
+from faster_whisper import WhisperModel
+import PyPDF2
+
+# Function to load resume content from PDF
+def load_resume(pdf_file):
+    try:
+        pdf_reader = PyPDF2.PdfReader(pdf_file)
+        resume_text = "\n".join(page.extract_text() for page in pdf_reader.pages if page.extract_text())
+        return resume_text
+    except Exception as e:
+        st.error(f"Error reading resume: {e}")
+        return None
+
+# Function to extract audio from video
+def extract_audio(video_path):
+    try:
+        temp_audio_path = tempfile.NamedTemporaryFile(delete=False, suffix=".wav").name
+        audio = AudioSegment.from_file(video_path)  # Automatically detects format
+        audio.export(temp_audio_path, format="wav")
+        return temp_audio_path
+    except Exception as e:
+        st.error(f"Error extracting audio: {e}")
+        return None
+
+# Function to transcribe audio
+def transcribe_audio(audio_path, model_size="small"):
+    try:
+        model = WhisperModel(model_size)  # Allow dynamic model selection
+        segments, _ = model.transcribe(audio_path)
+        return " ".join(segment.text for segment in segments)
+    except Exception as e:
+        st.error(f"Error in transcription: {e}")
+        return None
+
+# Function to get AI feedback from Gemini
+def get_gemini_feedback(transcribed_text, resume_content):
+    prompt = f"""
+    Based on the candidate's resume below:
+    {resume_content}
+
+    The following is the transcription of their interview response:
+    {transcribed_text}
+
+    Please evaluate their response and provide:
+    1. Strengths of their answer.
+    2. Areas for improvement.
+    3. A score out of 10.
+    """
+    try:
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        response = model.generate_content([prompt])
+        return response.text if response else "No response from Gemini."
+    except Exception as e:
+        st.error(f"Error generating feedback: {e}")
+        return None
+
+# Streamlit UI
+st.title("AI Interview Analyzer")
+st.write("Upload your recorded interview video and resume to receive AI-powered feedback.")
+
+# Upload resume
+uploaded_resume = st.file_uploader("Upload your resume (PDF)", type=["pdf"])
+resume_content = None
+if uploaded_resume:
+    resume_content = load_resume(uploaded_resume)
+    if resume_content:
+        st.success("✅ Resume uploaded successfully!")
+
+# Upload interview video
+uploaded_video = st.file_uploader("Upload your interview video (MP4, AVI, MOV)", type=["mp4", "avi", "mov"])
+
+if uploaded_video and resume_content:
+    st.video(uploaded_video)
+    temp_video_path = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4").name
+    with open(temp_video_path, "wb") as f:
+        f.write(uploaded_video.read())
+    st.success("✅ Video uploaded successfully!")
+
+    # Extract audio
+    audio_path = extract_audio(temp_video_path)
+    if audio_path:
+        st.success("🎵 Audio extracted successfully!")
+
+        # Allow user to select Whisper model size
+        model_size = st.selectbox("Select Whisper Model Size", ["tiny", "base", "small", "medium"], index=2)
+        st.write("Model selected:", model_size)
+
+        # Transcribe audio
+        with st.spinner("Transcribing audio..."):
+            transcribed_text = transcribe_audio(audio_path, model_size)
+        
+        if transcribed_text:
+            st.text_area("📝 Transcribed Text:", transcribed_text, height=150)
+
+            # Get AI feedback
+            if st.button("Submit for AI Feedback"):
+                with st.spinner("Generating AI feedback..."):
+                    feedback = get_gemini_feedback(transcribed_text, resume_content)
+                st.subheader("AI Feedback")
+                st.write(feedback)

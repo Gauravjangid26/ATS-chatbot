@@ -2,9 +2,12 @@ streamlit
 google-generativeai 
 python-dotenv 
 pdf2image 
+PyPDF2
 fpdf
 librosa
 pydub
 numpy
 pydub
 openai-whisper
+spacy
+faster_whisper
