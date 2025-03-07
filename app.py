@@ -448,7 +448,7 @@ if uploaded_video:
             st.error("❌ Your speech shows low confidence. Practice speaking with a stable tone and controlled pitch.")
 
         # Optional: Play extracted audio
-        st.audio(audio_path, format="audio/wav")
+        # st.audio(audio_path, format="audio/wav")
 
         # Cleanup: Remove temporary files
         os.remove(temp_video_path)

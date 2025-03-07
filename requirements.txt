@@ -6,3 +6,5 @@ fpdf
 librosa
 pydub
 numpy
+pydub
+ffmpeg
