@@ -1,5 +1,4 @@
-# A5 ATS Resume Expert
-# ATS Resume Expert Application
+# A5 ATS Resume Expert Applicationß
 
 ## Overview
 The **ATS Resume Expert** is a Streamlit-based web application designed to assist job seekers in optimizing their resumes for Applicant Tracking Systems (ATS). The application leverages Google's Gemini API for AI-powered resume analysis, personalized learning path generation, and interview preparation. It also includes features for audio analysis of interview responses and a question bank for technical interviews.
@@ -123,31 +122,6 @@ The **ATS Resume Expert** is a Streamlit-based web application designed to assis
 The **ATS Resume Expert** application is a comprehensive tool for job seekers to optimize their resumes, prepare for interviews, and receive personalized feedback. By leveraging AI-powered analysis, the application helps users improve their chances of success in the job market.
 
 ---
-
-For any issues or suggestions, please open an issue on the GitHub repository.
-
-## Installation
-1. Clone the repository:
-   ```
-   git clone https://github.com/Gauravjangid26/ATS-chatbot.git
-   cd ATS-chatbot
-   ```
-2. Install dependencies:
-   ```
-   pip install -r requirements.txt
-   ```
-3. Set up your **Google API Key** in a `.env` file:
-   ```
-   GOOGLE_API_KEY=your_api_key_here
-   ```
-
-## Usage
-Run the application with:
-```
-streamlit run app.py
-```
-
-
 
 ## Repository
 [GitHub: ATS-chatbot](https://github.com/Gauravjangid26/ATS-chatbot.git)
