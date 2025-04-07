@@ -11,3 +11,8 @@ pydub
 openai-whisper
 spacy
 faster_whisper
+speechrecognition
+pyttsx3
+WhisperModel
+tempfile
+soundfile
