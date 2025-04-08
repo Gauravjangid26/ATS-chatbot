@@ -7,19 +7,15 @@ from PIL import Image
 import pdf2image
 import google.generativeai as genai
 from fpdf import FPDF
-import requests  # Needed for downloading the font file
+import requests
 import librosa
 import numpy as np
 import tempfile
 from pydub import AudioSegment
-import streamlit as st
-import tempfile
-import time
-import numpy as np
 from faster_whisper import WhisperModel
-import google.generativeai as genai
-from pydub import AudioSegment
+import PyPDF2
 import soundfile as sf
+
 
 
 # Load environment variables
@@ -41,7 +37,7 @@ st.markdown("""<h1 style='text-align: center;'>📌 AI-Powered Resume ATS & Lear
 st.sidebar.image("logo.png", width=200)
 st.sidebar.title("Navigation")
 selected_tab = st.sidebar.radio("Choose a Feature", [
-    "🏆 Resume Analysis", "📚 Question Bank", "📊 DSA & Data Science", "🎤 Speech Analysis","Video Analysis","Top 5 MNCs","🗣️ Mock Interview"
+    "🏆 Resume Analysis", "📚 Question Bank", "📊 DSA & Data Science", "🎤 Speech Analysis","🎥Video Analysis","🔝Top 5 MNCs","🗣️ Mock Interview","🛠️ Code Debugger"
 ])
 import tempfile
 from faster_whisper import WhisperModel
@@ -419,7 +415,7 @@ elif selected_tab == "🎤 Speech Analysis":
 
 
 #video analysis
-elif selected_tab == "Video Analysis":
+elif selected_tab == "🎥Video Analysis":
     st.subheader("Video And Feedback ")
     st.write("Upload your recorded interview video and resume to receive AI-powered feedback.")
 
@@ -467,7 +463,7 @@ elif selected_tab == "Video Analysis":
 
 
 
-elif selected_tab == "Top 5 MNCs":
+elif selected_tab == "🔝Top 5 MNCs":
     
     selected_company = st.selectbox("Select a company:", ["Amazon", "Google", "Meta", "IBM", "Nvidia"])
     uploaded_file = st.file_uploader("Upload your resume (PDF)...", type=['pdf'])
@@ -692,6 +688,40 @@ if selected_tab == "🗣️ Mock Interview":
                 st.warning("👍 Good job! Some improvements needed.")
             else:
                 st.error("🚀 Keep practicing! Focus on refining your answers.")
+    
+elif selected_tab == "🛠️ Code Debugger":
+    st.header("🛠️ Python Code Debugger")
+
+    user_code = st.text_area("Paste your Python code below:", height=300)
+
+    if st.button("Check & Fix Code"):
+        if user_code.strip() == "":
+            st.warning("Please enter some code.")
+        else:
+            with st.spinner("Analyzing and fixing code..."):
+                prompt = f"""
+                Analyze the following Python code for bugs, syntax errors, and logic errors.
+                If it has issues, correct them. Return the fixed code and briefly explain the changes made.
+
+                Code:
+                ```python
+                {user_code}
+                ```
+                """
+
+                try:
+                    model = genai.GenerativeModel('gemini-1.5-flash')
+                    response = model.generate_content([prompt])
+
+                    if response:
+                        st.subheader("✅ Corrected Code")
+                        st.code(response.text, language="python")
+                    else:
+                        st.error("No response from Gemini.")
+                except Exception as e:
+                    st.error(f"Error: {e}")
+
+
 
 
 # Custom CSS for bottom-right placement and pop-up effect
